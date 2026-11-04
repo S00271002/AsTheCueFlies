@@ -23,6 +23,24 @@ This project will try and connect the brain of a fruit fly to a pool simulation.
 Package versions are recorded in `requirements.txt` and
 `environment-brain.yml`.
 
+## Run the demos
+
+From the project folder in Ubuntu/WSL:
+
+```bash
+conda activate brain-fly
+python main.py              # Fixed-speed pool shot
+python fly_controller.py    # Same shot, with speed set by neural activity
+python view_spikes.py        # Replay the recorded sugar-stimulation spikes
+```
+
+Only the fixed-speed demo also runs in the Windows pool-only `.venv`.
+The spike viewer needs a recorded run. Generate one from the project folder:
+
+```bash
+(cd external/fly-brain && python main.py --pytorch --experiment sugar --t_run 0.1 --n_run 1)
+```
+
 ## External projects
 
 - [pooltool](https://github.com/ekiefl/pooltool)

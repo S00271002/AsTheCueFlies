@@ -7,7 +7,7 @@ sys.path.insert(0, str(fly_folder / "code"))
 
 import pyarrow  # Import before torch to avoid the known library conflict.
 import torch
-import pooltool as pt
+from main import play_shot
 
 from benchmark import get_experiment
 from run_pytorch import (
@@ -88,36 +88,12 @@ def get_cue_speed():
     print(f"Other spikes: {int(response_spikes)}")
 
     # Engineered starting rule, not learned behaviour.
-    activity_scale = 2000
+    activity_scale = 4000
     activity_level = min(response_spikes / activity_scale, 1.0)
     cue_speed = 0.5 + activity_level * 1.5
 
     print(f"Chosen cue speed: {cue_speed:.2f} m/s")
     return cue_speed
-
-
-def play_shot(cue_speed):
-    """Simulate a straight shot using the brain-derived cue speed."""
-    table = pt.Table.default()
-
-    balls = {
-        "cue": pt.Ball.create("cue", xy=(0.4, 0.4)),
-        "1": pt.Ball.create("1", xy=(0.4, 0.8)),
-    }
-
-    cue = pt.Cue(cue_ball_id="cue")
-    shot = pt.System(table=table, balls=balls, cue=cue)
-
-    shot.cue.set_state(
-        V0=cue_speed,
-        phi=90,
-        a=0,
-        b=0,
-        theta=0,
-    )
-
-    pt.simulate(shot, inplace=True)
-    pt.show(shot)
 
 
 if __name__ == "__main__":
