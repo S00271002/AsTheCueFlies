@@ -247,31 +247,66 @@ class Scenario:
 
 
 class ChooseShot(Scenario):
-    """Scenario 1: cue ball on the head string; ball 1 sits near a corner
-    pocket (easy pot), ball 2 sits in the middle of the table, far from every
-    pocket (hard pot). The fly chooses which ball to go for; aiming and speed
-    are automatic. Potting either ball earns sugar."""
+    """Scenario 1: the cue ball sits on the head string and two balls are
+    placed at random on the table, in new positions every shot. The fly is
+    shown how each ball lies (how close it is to a pocket, how straight the
+    pot is, how far it is from the cue ball) and chooses which ball to go
+    for; aiming and speed are automatic. Potting either ball earns sugar."""
 
     key = "scenario1_choose_shot"
     title = "Scenario 1 - choose the best shot"
     sensory_ids = WATER
     aim_noise_deg = 0.5
-    best_option = 0
+    best_option = None  # changes every shot
 
     def layout(self):
-        cue = np.array([self.w / 2, self.l / 4])           # head string
-        pocket = self.pockets["rt"]
-        towards_cue = _rotate(unit(cue - pocket), -4)      # nearly straight in
-        near = pocket + 0.22 * towards_cue
-        far = np.array([self.w * 0.5, self.l * 0.63])      # middle of the table
-        return {CUE: cue, "1": near, "2": far}
+        return self.random_layout(np.random.default_rng(0))
+
+    def random_layout(self, rng):
+        """Cue ball on the head string; balls 1 and 2 anywhere, as long as
+        they do not touch and each one has a pocket it can go into."""
+        cue = np.array([self.w / 2, self.l / 4])
+        margin = self.R + 0.03
+        for _ in range(1000):
+            balls = {CUE: cue}
+            for bid in ("1", "2"):
+                balls[bid] = np.array([rng.uniform(margin, self.w - margin),
+                                       rng.uniform(margin, self.l - margin)])
+            points = list(balls.values())
+            if min(np.linalg.norm(a - b) for i, a in enumerate(points)
+                   for b in points[i + 1:]) < 4 * self.R:
+                continue
+            self.positions = balls
+            if all(self.best_pocket(bid) is not None for bid in ("1", "2")):
+                return balls
+        raise RuntimeError("Could not find a playable layout")
+
+    def new_layout(self, rng):
+        """Called before every shot: new ball positions and options."""
+        self.positions = self.random_layout(rng)
+        self.options = self.make_options()
 
     def make_options(self):
-        opts = []
-        for bid, desc in (("1", "ball 1 (near a pocket)"), ("2", "ball 2 (far from pockets)")):
-            pocket = self.best_pocket(bid)
-            opts.append({"label": f"pot {desc}", "target": bid, "pocket": pocket})
-        return opts
+        return [{"label": f"pot ball {bid}", "target": bid, "pocket": self.best_pocket(bid)}
+                for bid in ("1", "2")]
+
+    def ball_features(self, bid):
+        """How a ball lies, each from 0 (bad) to 1 (good)."""
+        cue, ball = self.positions[CUE], self.positions[bid]
+        pocket = self.pockets[self.best_pocket(bid)]
+        return {
+            "near_pocket": float(np.clip(1 - np.linalg.norm(pocket - ball) / 1.0, 0, 1)),
+            "straight": float(math.cos(math.radians(cut_angle(cue, ball, pocket, self.R)))),
+            "near_cue": float(np.clip(1 - np.linalg.norm(ball - cue) / 2.0, 0, 1)),
+        }
+
+    def look_stimuli(self, bid):
+        """What the fly sees when it looks at one ball: 3 water neurons per
+        feature, firing at 20 Hz (bad) to 200 Hz (good). The same 9 neurons
+        are used for both balls; the fly looks at them one at a time."""
+        features = self.ball_features(bid)
+        return [(WATER[j * 3:j * 3 + 3], 20 + 180 * features[name])
+                for j, name in enumerate(("near_pocket", "straight", "near_cue"))]
 
     def shot_for(self, o):
         cue, ball = self.positions[CUE], self.positions[o["target"]]
@@ -279,11 +314,17 @@ class ChooseShot(Scenario):
                 "phi": ghost_phi(cue, ball, self.pockets[o["pocket"]], self.R),
                 "V0": self.pot_speed(o["target"], o["pocket"]), "theta": 0.0, "a": 0.0, "b": 0.0}
 
-    def judge(self, shot, r):
+        def judge(self, shot, r):
         if r["scratch"]:
             return ("bitter", 1.0, "scratch: cue ball went in")
+        if r["target_potted"] and r["target_closest_pocket"] == shot["pocket"]:
+            return ("sugar", 1.0, f"potted ball {shot['target']} in {shot['pocket']}")
+        if r["target_potted"]:
+            return ("none", 0.0, f"ball {shot['target']} went in {r['target_closest_pocket']}, "
+                                 f"not the called pocket {shot['pocket']}")
         if r["objects_potted"]:
-            return ("sugar", 1.0, "potted " + ", ".join(f"ball {b}" for b in r["objects_potted"]))
+            return ("none", 0.0, "potted " + ", ".join(f"ball {b}" for b in r["objects_potted"])
+                                 + f" instead of ball {shot['target']}")
         return self._bitter_or_none(r)
 
 

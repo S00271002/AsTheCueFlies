@@ -21,7 +21,7 @@ from pathlib import Path
 import numpy as np
 
 import scenario as ps
-from decision import DecisionLayer
+from decision import BallValueLayer as DecisionLayer
 from shot_log import RunLock, ShotLog
 
 HERE = Path(__file__).resolve().parent
@@ -33,7 +33,7 @@ def parse_args(mode, description):
     ap.add_argument("--shots", type=int, default=0,
                     help="stop after this many shots (default: run until stopped)")
     ap.add_argument("--seed", type=int, default=0, help="base random seed")
-    ap.add_argument("--learning-rate", type=float, default=0.5)
+    ap.add_argument("--learning-rate", type=float, default=3)
     ap.add_argument("--fresh", action="store_true",
                     help="start a new fly (keeps the old weights file as a backup)")
     if mode == "watch":
@@ -127,14 +127,21 @@ def play_one(scenario, brain, decision, shot_number, base_seed, recent, record):
     row = {"shot_number": shot_number, "seed": seed, "error": ""}
     visuals = {}
     try:
-        # 1. Look
-        look = brain.simulate([(brain.sensory, ps.LOOK_HZ)], ps.LOOK_MS,
-                              seed=seed, record=record, reset=True)
-        x_hat = decision.normalise(look.counts)
-
+               # 1. Look: a new random layout; the fly looks at each ball in turn
+        scenario.new_layout(rng)
+        balls = [o["target"] for o in scenario.options]
+        stimuli, looks = [], []
+        for k, bid in enumerate(balls):
+            stim = [([brain.index[i] for i in ids if i in brain.index], hz)
+                    for ids, hz in scenario.look_stimuli(bid)]
+            stimuli.append([round(hz, 1) for _, hz in stim])
+            looks.append(brain.simulate(stim, ps.LOOK_MS, seed=seed * 10 + k,
+                                        record=record, reset=True))
+        x_hats = [decision.normalise(lk.counts) for lk in looks]
         # 2. Choose
-        p, drive = decision.probabilities(x_hat)
+        p, drive = decision.probabilities(x_hats)
         choice = decision.choose(p, rng)
+        look = looks[choice]
         best = scenario.best_option
 
         # 3. Shoot
@@ -151,16 +158,16 @@ def play_one(scenario, brain, decision, shot_number, base_seed, recent, record):
         # 5. Learn
         reward = ps.reward_signal(taste, strength)
         baseline_before = decision.baseline
-        advantage = decision.learn(x_hat, p, choice, reward)
-        p_after, _ = decision.probabilities(x_hat)
+        advantage = decision.learn(x_hats, p, choice, reward)
+        p_after, _ = decision.probabilities(x_hats)
 
         success = taste == "sugar" and strength >= 0.999
         recent.append(success)
 
         row.update({
-            "look_stimulus_hz": ps.LOOK_HZ, "look_duration_ms": ps.LOOK_MS,
-            "look_total_spikes": look.total(),
-            "look_active_neurons": int((look.counts > 0).sum()),
+            "look_stimulus_hz": json.dumps(stimuli), "look_duration_ms": ps.LOOK_MS,
+            "look_total_spikes": sum(lk.total() for lk in looks),
+            "look_active_neurons": int((sum(lk.counts for lk in looks) > 0).sum()),
             "option_index": choice, "option_label": scenario.options[choice]["label"],
             "best_option_index": "" if best is None else best,
             "p_chosen": round(float(p[choice]), 4),

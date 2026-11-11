@@ -97,3 +97,43 @@ class DecisionLayer:
         layer.baseline = float(d["baseline"])
         layer.shots_learned = int(d["shots_learned"])
         return layer, True
+        
+
+class BallValueLayer(DecisionLayer):
+    """Decision layer for random layouts: the fly looks at each ball in turn
+    and one shared set of synapses turns the brain's response to that ball
+    into a "how good is this ball" drive. The fly picks a ball with
+    softmax(drive). Because the synapses are shared, what it learns is about
+    how a ball lies, not whether it is called ball 1 or ball 2.
+
+    Learning: W += rate * (reward - baseline) * (x_chosen - sum_k p_k x_k)
+    """
+
+    def __init__(self, n_choices, n_neurons, **kwargs):
+        super().__init__(1, n_neurons, **kwargs)
+        self.n_choices = n_choices
+
+    def probabilities(self, x_hats):
+        drive = np.array([float(self.W[0] @ x) for x in x_hats])
+        z = np.exp(drive - drive.max())
+        p = z / z.sum()
+        p = (1 - self.epsilon) * p + self.epsilon / self.n_choices
+        return p, drive
+
+    def choose(self, p, rng):
+        return int(rng.choice(self.n_choices, p=p))
+
+    def learn(self, x_hats, p, chosen, reward):
+        advantage = reward - self.baseline
+        expected = sum(pk * x for pk, x in zip(p, x_hats))
+        self.W[0] += (self.learning_rate * advantage) * (x_hats[chosen] - expected).astype(np.float32)
+        self.baseline += self.baseline_rate * (reward - self.baseline)
+        self.shots_learned += 1
+        return advantage
+
+    @classmethod
+    def load_or_new(cls, path, n_choices, n_neurons, **kwargs):
+        layer, resumed = DecisionLayer.load_or_new(path, 1, n_neurons, **kwargs)
+        shared = cls(n_choices, n_neurons, **kwargs)
+        shared.W, shared.baseline, shared.shots_learned = layer.W, layer.baseline, layer.shots_learned
+        return shared, resumed

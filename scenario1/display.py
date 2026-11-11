@@ -18,7 +18,18 @@ BALL_COLOURS = {"cue": "white", "1": "gold", "2": "#1f5fbf"}
 TASTE_TEXT = {"sugar": ("SUGAR", SUGAR), "bitter": ("mild bitter", BITTER),
               "none": ("no taste", "grey")}
 
-
+def describe_shot(shot):
+    """The pooltool cue settings for a shot, as text."""
+    a, b = shot["a"], shot["b"]
+    spin = "back spin" if b < 0 else "top spin" if b > 0 else "centre ball"
+    side = "none" if a == 0 else ("right" if a > 0 else "left")
+    return (f"POOLTOOL SHOT\n"
+            f"Target   ball {shot['target']} -> pocket {shot.get('pocket') or '-'}\n"
+            f"Power    V0    = {shot['V0']:.2f} m/s\n"
+            f"Aim      phi   = {shot['phi']:.1f} deg (error {shot['aim_noise']:+.2f})\n"
+            f"Spin     b     = {b:+.2f} ({spin})\n"
+            f"Side     a     = {a:+.2f} ({side})\n"
+            f"Cue tilt theta = {shot['theta']:.0f} deg")
 class TrainingDisplay:
     def __init__(self, scenario, speed=1.0, history=()):
         self.sc = scenario
@@ -33,7 +44,11 @@ class TrainingDisplay:
         self.fig.canvas.manager.set_window_title(scenario.title)
         gs = self.fig.add_gridspec(3, 2, width_ratios=[1, 2.2], height_ratios=[1.1, 1.4, 1],
                                    hspace=0.55, wspace=0.15)
-        self.ax_table = self.fig.add_subplot(gs[:, 0])
+        self.ax_table = self.fig.add_subplot(gs[:2, 0])
+        self.ax_shot = self.fig.add_subplot(gs[2, 0])
+        self.ax_shot.axis("off")
+        self.shot_info = self.ax_shot.text(0.0, 1.0, "", va="top", ha="left", fontsize=8,
+                                           family="monospace", transform=self.ax_shot.transAxes)
         self.ax_choice = self.fig.add_subplot(gs[0, 1])
         self.ax_brain = self.fig.add_subplot(gs[1, 1])
         self.ax_learn = self.fig.add_subplot(gs[2, 1])
@@ -102,6 +117,7 @@ class TrainingDisplay:
         self._draw_choice(v["p_before"], row["option_index"])
         self.headline.set_text(f"Shot {n}: the fly chooses  →  {row['option_label']}")
         shot = v["shot"]
+        self.shot_info.set_text(describe_shot(shot))
         cue = np.array(self.sc.positions["cue"])
         phi = np.radians(shot["phi"])
         self.aim_line.set_data([cue[0], cue[0] + 0.5 * np.cos(phi)],

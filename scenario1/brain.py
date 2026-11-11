@@ -78,6 +78,7 @@ class TrainingBrain:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         print(f"Using device: {self.device}")
         index, _ = get_hash_tables(str(neuron_file))
+        self.index = index
         weights = get_weights(str(connection_file), str(neuron_file), str(data),
                               csr=True).to(device=self.device)
         self.size = weights.shape[0]
