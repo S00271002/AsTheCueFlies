@@ -281,7 +281,7 @@ class ChooseShot(Scenario):
 
     def judge(self, shot, r):
         if r["scratch"]:
-            return ("none", 0.0, "scratch: cue ball went in")
+            return ("none", 1.0, "scratch: cue ball went in")
         if r["objects_potted"]:
             return ("sugar", 1.0, "potted " + ", ".join(f"ball {b}" for b in r["objects_potted"]))
         return self._bitter_or_none(r)
