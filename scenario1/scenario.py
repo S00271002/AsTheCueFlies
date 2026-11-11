@@ -307,14 +307,16 @@ class ChooseShot(Scenario):
         features = self.ball_features(bid)
         return [(WATER[j * 3:j * 3 + 3], 20 + 180 * features[name])
                 for j, name in enumerate(("near_pocket", "straight", "near_cue"))]
-
+                
     def shot_for(self, o):
         cue, ball = self.positions[CUE], self.positions[o["target"]]
         return {"target": o["target"], "pocket": o["pocket"],
                 "phi": ghost_phi(cue, ball, self.pockets[o["pocket"]], self.R),
                 "V0": self.pot_speed(o["target"], o["pocket"]), "theta": 0.0, "a": 0.0, "b": 0.0}
+                
 
-        def judge(self, shot, r):
+
+    def judge(self, shot, r):
         if r["scratch"]:
             return ("bitter", 1.0, "scratch: cue ball went in")
         if r["target_potted"] and r["target_closest_pocket"] == shot["pocket"]:
@@ -326,6 +328,9 @@ class ChooseShot(Scenario):
             return ("none", 0.0, "potted " + ", ".join(f"ball {b}" for b in r["objects_potted"])
                                  + f" instead of ball {shot['target']}")
         return self._bitter_or_none(r)
+
+        
+        
 
 
 def taste_stimulus(taste, strength):
