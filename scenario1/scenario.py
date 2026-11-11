@@ -217,7 +217,7 @@ class Scenario:
             return ("bitter", 1.0, "missed the target ball")
         if result["target_min_dist"] > FAR:
             return ("bitter", 1.0, f"target never came within {FAR:.2f} m of a pocket")
-        return ("none", 0.0, "close but not potted")
+        return ("bitter", 0.5, "close but not potted")
 
     def best_pocket(self, ball_id):
         """Easiest pocket for a ball: short, small cut, clear path."""
@@ -281,7 +281,7 @@ class ChooseShot(Scenario):
 
     def judge(self, shot, r):
         if r["scratch"]:
-            return ("none", 1.0, "scratch: cue ball went in")
+            return ("bitter", 1.0, "scratch: cue ball went in")
         if r["objects_potted"]:
             return ("sugar", 1.0, "potted " + ", ".join(f"ball {b}" for b in r["objects_potted"]))
         return self._bitter_or_none(r)
