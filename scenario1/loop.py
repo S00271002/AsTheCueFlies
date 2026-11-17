@@ -76,13 +76,21 @@ def run(mode, args):
             "layout": {k: v.tolist() for k, v in scenario.positions.items()},
         }
         log = ShotLog(folder, scenario_key, mode, config)
-        recent = deque(log.recent_successes(50), maxlen=50)
+                # Only the shots this fly has learned from (a fresh fly starts with none)
+        valid = [r for r in log.history if not r.get("error")]
+        fly_history = valid[-decision.shots_learned:] if decision.shots_learned else []
+        recent = deque([r.get("success") == "True" for r in fly_history][-50:], maxlen=50)
+        scenario.streak = 0  # pots in a row, carried over from this fly's last session
+        for r in reversed(fly_history):
+            if r.get("success") != "True":
+                break
+            scenario.streak += 1
         print(f"Logging every shot to {log.path.relative_to(HERE.parent)}")
 
         display = None
         if mode == "watch":
             from display import TrainingDisplay
-            display = TrainingDisplay(scenario, speed=args.speed, history=log.history)
+            display = TrainingDisplay(scenario, speed=args.speed, history=fly_history)
 
         save_every = 1 if mode == "watch" else 10
         done = 0
@@ -150,6 +158,24 @@ def play_one(scenario, brain, decision, shot_number, base_seed, recent, record):
 
         # 4. Taste
         taste, strength, reason = scenario.judge(shot, result)
+        if taste == "sugar" and strength >= 0.999:
+            scenario.streak += 1
+            if scenario.streak > 1:
+                bonus = min(1 + ps.STREAK_STEP * (scenario.streak - 1), ps.STREAK_MAX)
+                strength *= bonus
+                reason += f" (streak of {scenario.streak}: sugar x{bonus:.1f})"
+        else:
+            scenario.streak = 0
+            reason += f" (streak reset to {scenario.streak})"
+        if taste == "bitter" and strength >= 0.999:
+                scenario.streak += 1
+                if scenario.streak > 1:
+                    bonus = min(1 + ps.STREAK_STEP * (scenario.streak - 1), ps.STREAK_MAX)
+                    strength *= bonus
+                    reason += f" (streak of {scenario.streak}: bitter x{bonus:.1f})"
+        else:
+            scenario.streak = 0
+            reason += f" (streak reset to {scenario.streak})"
         rate, duration = ps.taste_stimulus(taste, strength)
         neurons = brain.sugar if taste == "sugar" else brain.bitter if taste == "bitter" else []
         taste_activity = brain.simulate([(neurons, rate)], duration or 30.0,

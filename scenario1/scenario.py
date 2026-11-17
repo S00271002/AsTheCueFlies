@@ -24,12 +24,14 @@ TITLE = "Scenario 1 - choose the best shot"
 
 FAR = 0.30            # metres; never got this close to a pocket -> bitter
 SUGAR_HZ = 200.0      # full-strength sugar (the rate used in the paper)
-SUGAR_MS = 50.0
+SUGAR_MS = 100.0
 BITTER_HZ = 40.0      # mild: low rate, short pulse
 BITTER_MS = 30.0
 BITTER_REWARD = -0.3  # learning signal for bitter
 LOOK_HZ = 150.0
 LOOK_MS = 100.0
+STREAK_STEP = 0.2     # each pot in a row adds 20 % more sugar
+STREAK_MAX = 2.0      # never more than double sugar
 
 
 # -- physics ----------------------------------------------------------------
@@ -185,7 +187,7 @@ class Scenario:
     title = ""
     sensory_ids = []
     aim_noise_deg = 0.0      # random aiming error, like a real player
-    speed_noise = 0.02       # +-2 % random speed error
+    speed_noise = 0.0       # +-2 % random speed error
     best_option = None       # known best option, if there is one
 
     def __init__(self):
@@ -247,7 +249,7 @@ class Scenario:
 
 
 class ChooseShot(Scenario):
-    """Scenario 1: the cue ball sits on the head string and two balls are
+    """Scenario 1: the cue ball sits on the D and two balls are
     placed at random on the table, in new positions every shot. The fly is
     shown how each ball lies (how close it is to a pocket, how straight the
     pot is, how far it is from the cue ball) and chooses which ball to go
@@ -256,7 +258,7 @@ class ChooseShot(Scenario):
     key = "scenario1_choose_shot"
     title = "Scenario 1 - choose the best shot"
     sensory_ids = WATER
-    aim_noise_deg = 0.5
+    aim_noise_deg = 0.0
     best_option = None  # changes every shot
 
     def layout(self):
@@ -319,7 +321,11 @@ class ChooseShot(Scenario):
     def judge(self, shot, r):
         if r["scratch"]:
             return ("bitter", 1.0, "scratch: cue ball went in")
-        if r["target_potted"] and r["target_closest_pocket"] == shot["pocket"]:
+        called = r["target_potted"] and r["target_closest_pocket"] == shot["pocket"]
+        if called and len(r["objects_potted"]) == 2:
+            return ("sugar", 1.2, f"potted ball {shot['target']} in {shot['pocket']} "
+                                  f"and the other ball too")
+        if called:
             return ("sugar", 1.0, f"potted ball {shot['target']} in {shot['pocket']}")
         if r["target_potted"]:
             return ("none", 0.0, f"ball {shot['target']} went in {r['target_closest_pocket']}, "
@@ -327,7 +333,7 @@ class ChooseShot(Scenario):
         if r["objects_potted"]:
             return ("none", 0.0, "potted " + ", ".join(f"ball {b}" for b in r["objects_potted"])
                                  + f" instead of ball {shot['target']}")
-        return self._bitter_or_none(r)
+        return self._bitter_or_none(r)  
 
         
         
@@ -336,7 +342,7 @@ class ChooseShot(Scenario):
 def taste_stimulus(taste, strength):
     """Rate (Hz) and duration (ms) of the taste pulse given to the brain."""
     if taste == "sugar":
-        return SUGAR_HZ * strength, SUGAR_MS
+        return SUGAR_HZ * strength, SUGAR_MS+0.05
     if taste == "bitter":
         return BITTER_HZ, BITTER_MS
     return 0.0, 0.0

@@ -254,6 +254,7 @@ class TrainingDisplay:
             s = np.array(self.success_hist, float)
             window = 20
             rolling = np.convolve(s, np.ones(window), "full")[:n] / np.minimum(x, window)
+            ax.clear()
             ax.plot(x, rolling, color=SUGAR, label=f"success rate (last {window} shots)")
             tastes = np.array(self.taste_hist)
             ax.scatter(x[tastes == "sugar"], np.full((tastes == "sugar").sum(), 1.04),
@@ -265,7 +266,7 @@ class TrainingDisplay:
             ax.plot(xb, self.pbest_hist, color="#2e7d4f", label="chance of picking the best option")
         ax.set_ylim(-0.08, 1.08)
         ax.set_xlim(0, max(n, 10) + 1)
-        ax.set_xlabel("Shot number (all sessions)", fontsize=8)
+        ax.set_xlabel("Shots by this fly", fontsize=8)
         ax.set_title("Learning (ticks: orange = sugar, purple = bitter)", fontsize=9, loc="left")
         if ax.get_legend_handles_labels()[0]:
             ax.legend(loc="center right", fontsize=7, frameon=False)
