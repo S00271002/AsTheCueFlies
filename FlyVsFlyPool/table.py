@@ -23,15 +23,17 @@ MAX_CUT = 70.0      # cuts thinner than this many degrees are treated as impossi
 # ----------------------------------------------------------------------------
 # Small geometry helpers
 # ----------------------------------------------------------------------------
+
 def unit(v):
     """Direction of a vector, with length 1."""
     return np.asarray(v, dtype=float) / np.linalg.norm(v)
 
-
+'''
 def ghost_ball(ball, pocket):
     """Where the cue ball must be when it hits `ball` to send it into `pocket`."""
     return ball - 2 * R * unit(pocket - ball)
 
+'''
 
 def cut_angle(cue, ball, pocket):
     """How thin the cut is, in degrees. 0 = dead straight, 90 = impossible."""
@@ -39,18 +41,17 @@ def cut_angle(cue, ball, pocket):
     b = unit(pocket - ball)                      # object ball's direction
     return math.degrees(math.acos(float(np.clip(a @ b, -1, 1))))
 
-
+'''
 def distance_to_line(p, a, b):
     """Shortest distance from point p to the line segment a-b."""
     ab = b - a
     t = np.clip(np.dot(p - a, ab) / np.dot(ab, ab), 0, 1) if ab.any() else 0
     return float(np.linalg.norm(p - (a + t * ab)))
 
-
+'''
 def aim_angle(start, end):
     """Aim direction in degrees from point `start` towards point `end`."""
     return math.degrees(math.atan2(end[1] - start[1], end[0] - start[0])) % 360
-
 
 # ----------------------------------------------------------------------------
 # best_pocket: the easiest clear pocket for a ball (or None)
@@ -61,9 +62,9 @@ def best_pocket(positions, ball_id):
     best, best_cost = None, math.inf
     for pid, pocket in POCKETS.items():
         cut = cut_angle(cue, ball, pocket)
-        if cut > MAX_CUT:
-            continue                                   # too thin
-        ghost = ghost_ball(ball, pocket)
+       #if cut > MAX_CUT:
+        #    continue                                   # too thin
+        #ghost = ghost_ball(ball, pocket)
         # Skip the pocket if another ball is in the way of either path.
         if any(distance_to_line(o, cue, ghost) < 2 * R or
                distance_to_line(o, ball, pocket) < 2 * R for o in others):
@@ -90,12 +91,12 @@ def shot_numbers(positions, ball_id, pocket_id):
 # ----------------------------------------------------------------------------
 # shot_speed: how hard to hit (a rule of thumb, not physics)
 # ----------------------------------------------------------------------------
-def shot_speed(positions, ball_id, pocket_id):
-    cue, ball, pocket = positions[CUE], positions[ball_id], POCKETS[pocket_id]
-    # A cut passes on less speed, so hit harder (but don't divide by tiny numbers).
-    transfer = max(math.cos(math.radians(cut_angle(cue, ball, pocket))), 0.35)
-    speed = 0.9 + 0.5 * np.linalg.norm(ball - cue) + 1.3 * np.linalg.norm(pocket - ball) / transfer
-    return float(min(speed, 4.5))     # metres per second, capped
+#def shot_speed(positions, ball_id, pocket_id):
+#    cue, ball, pocket = positions[CUE], positions[ball_id], POCKETS[pocket_id]
+#    # A cut passes on less speed, so hit harder (but don't divide by tiny numbers).
+#    transfer = max(math.cos(math.radians(cut_angle(cue, ball, pocket))), 0.35)
+#    speed = 0.9 + 0.5 * np.linalg.norm(ball - cue) + 1.3 * np.linalg.norm(pocket - ball) / transfer
+#    return float(min(speed, 4.5))     # metres per second, capped
 
 
 # ----------------------------------------------------------------------------
@@ -111,14 +112,14 @@ def free_spot(positions, xy):
 # ----------------------------------------------------------------------------
 # ball_in_hand_spot: after a foul, put the cue ball behind a ball for a straight pot
 # ----------------------------------------------------------------------------
-def ball_in_hand_spot(positions, ball_id):
-    ball = positions[ball_id]
-    for pid in sorted(POCKETS, key=lambda p: np.linalg.norm(POCKETS[p] - ball)):  # nearest pocket first
-        for distance_back in (0.25, 0.4, 0.15):
-            xy = ghost_ball(ball, POCKETS[pid]) - distance_back * unit(POCKETS[pid] - ball)
-            if free_spot(positions, xy) and best_pocket({**positions, CUE: xy}, ball_id):
-                return xy
-    return None
+#def ball_in_hand_spot(positions, ball_id):
+ #   ball = positions[ball_id]
+  #  for pid in sorted(POCKETS, key=lambda p: np.linalg.norm(POCKETS[p] - ball)):  # nearest pocket first
+   #     for distance_back in (0.25, 0.4, 0.15):
+    #        xy = ghost_ball(ball, POCKETS[pid]) - distance_back * unit(POCKETS[pid] - ball)
+     #       if free_spot(positions, xy) and best_pocket({**positions, CUE: xy}, ball_id):
+      #          return xy
+    #return None
 
 
 # ----------------------------------------------------------------------------
