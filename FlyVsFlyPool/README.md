@@ -1,4 +1,5 @@
 # Fly vs Fly Pool
+DO NOT COMMIT .pkl FILES ADD TO GIT IGNORE THEY ARE GENERATED NEW EACH TIME YOU START 
 
 Two copies of a simulated fruit-fly brain (the FlyWire connectome, run with
 the Shiu et al. 2024 neuron model) play a game of 8-ball against each other.
