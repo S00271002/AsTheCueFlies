@@ -1,0 +1,9 @@
+# Install with:  .venv\Scripts\python.exe -m pip install -r requirements.txt
+# PyTorch (CUDA build) is installed separately, see README.md.
+# pooltool needs a Panda3D development build that is only on the Panda3D archive:
+--extra-index-url https://archive.panda3d.org/
+pooltool-billiards==0.6.0
+numpy
+pandas
+pyarrow
+matplotlib
