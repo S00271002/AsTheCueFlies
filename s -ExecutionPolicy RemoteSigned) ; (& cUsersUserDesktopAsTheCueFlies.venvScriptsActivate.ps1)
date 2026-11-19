@@ -1,0 +1,115 @@
+[33mcommit 2eb2267206c42545e5e664d165342cb6ef920d76[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Merge: 0dc6ac6 3cbde77
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Tue Nov 17 14:15:28 2026 +0000
+
+    Merge branch 'master' of https://github.com/S00271002/AsTheCueFlies
+
+[33mcommit 0dc6ac6c4d111a8dddd8a7242f01dbe4629b7a1e[m
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Tue Nov 17 14:08:05 2026 +0000
+
+    changed some training and more training
+
+[33mcommit 3cbde77b563847e357fe456017dff6f77a79321f[m
+Merge: 2520d09 c06e9b9
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Tue Nov 17 13:46:46 2026 +0000
+
+    Merge branch 'master' of https://github.com/S00271002/The-Fruit-Fly
+
+[33mcommit 2520d09dd92c521a241817d9a41f47acb164d5cc[m
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Tue Nov 17 13:46:35 2026 +0000
+
+    added simulation
+
+[33mcommit c06e9b9a9dd560e55a551c25d9659f33e978db71[m
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Thu Nov 12 14:13:58 2026 +0000
+
+    training
+
+[33mcommit 2df42f24144b64c82fbd162259e13a2786ce7669[m
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Thu Nov 12 00:44:13 2026 +0000
+
+    more training
+
+[33mcommit 265c4db5e3b4298a1a5786d305d5c7de5d359328[m
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Wed Nov 11 23:46:31 2026 +0000
+
+    stupid formatting error
+
+[33mcommit 4a7bd63bbe8160eaa93e5aa16938f62aed2dbd77[m
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Wed Nov 11 23:42:14 2026 +0000
+
+    no reward if it pots in a pot it didnt select
+
+[33mcommit 59b4b089d8944266fbdbfd3e0a1379eedf7ac87e[m
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Wed Nov 11 23:10:42 2026 +0000
+
+    minor tweaks
+
+[33mcommit cc5bf28ef768ef5398f0010215e43f57dd0c1265[m
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Wed Nov 11 23:03:19 2026 +0000
+
+    it kept wiffing
+
+[33mcommit 93bc79d0e4c8a2b5781425c531dc9b7b4f736d90[m
+Author: Alex Fagan <196803660+IE-Jace@users.noreply.github.com>
+Date:   Wed Nov 11 22:56:40 2026 +0000
+
+    Testing files
+    
+    watch or train without visual
+
+[33mcommit 5da9a86e462035d60e0a3cae3039ccffac683576[m[33m ([m[1;31morigin/JaceTestingBranch[m[33m, [m[1;32mJaceTestingBranch[m[33m)[m
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Wed Nov 4 13:13:56 2026 +0000
+
+    Update .gitignore and removed unused files
+
+[33mcommit e8223a9bbc35d031c907e6425e110638db7d83b3[m
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Mon Oct 19 17:30:05 2026 +0100
+
+    added pool functionality into ubuntu env
+
+[33mcommit d2a8c216ceb0f52e4a3883258576811bf8c8d4dd[m
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Mon Oct 19 16:35:02 2026 +0100
+
+    added setup file for quick start of env
+
+[33mcommit fd8e982bb939921213d8187bd427f2b0b8bce78a[m
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Mon Oct 19 16:20:54 2026 +0100
+
+    Add spike visualization script for fruit-fly neural activity
+    
+    - Created a new Python script `view_spikes.py` that visualizes neural activity in fruit flies.
+    - The script reads spike data from a parquet file and identifies sugar neuron activity.
+    - Implements an animated scatter plot to display neuron spikes over time, with color coding for sugar neurons.
+
+[33mcommit 7fda3338d96d098830f58c65683d39c5d2e8b833[m
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Mon Oct 19 16:02:42 2026 +0100
+
+    set up fly brain env and added packages
+
+[33mcommit 6eb375555dbbb5ad3869a1fd2aab849eceed1314[m
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Mon Oct 19 16:01:38 2026 +0100
+
+    set up fly brain env and added packages
+
+[33mcommit e6b750f999dfe6585398edaa9e785be7bbcaf529[m
+Author: Fragg1e <s00271002@atu.ie>
+Date:   Mon Oct 19 14:51:40 2026 +0100
+
+    initial push
